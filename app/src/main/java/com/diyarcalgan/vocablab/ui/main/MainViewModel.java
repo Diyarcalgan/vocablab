@@ -1,95 +1,93 @@
 package com.diyarcalgan.vocablab.ui.main;
 
 import android.app.Application;
-import androidx.annotation.NonNull;
+import android.content.Context;
 import androidx.lifecycle.AndroidViewModel;
-
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import com.diyarcalgan.vocablab.data.WordRepository;
 import com.diyarcalgan.vocablab.data.model.Word;
-
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainViewModel extends AndroidViewModel {
     private WordRepository repository;
-    private List<Word> allWords;
+    private List<Word> allWords = new ArrayList<>();
+    private String currentLanguage = "EN";
     private int currentIndex = 0;
+    
+    private MutableLiveData<Integer> knownCount = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> totalCount = new MutableLiveData<>(0);
+    private MutableLiveData<Integer> unknownCount = new MutableLiveData<>(0);
 
-    private int knownCount = 0;
-    private int repeatCount = 0;
-
-    private String currentLanguage = "EN"; // Başlangıç dili İngilizce
-
-    public MainViewModel(@NonNull Application application) {
+    public MainViewModel(Application application) {
         super(application);
         repository = new WordRepository(application);
     }
 
-    // Seçili dili değiştir ve o dilin kelimelerini yükle
-    public void setLanguage(String lang) {
-        this.currentLanguage = lang;
-        currentIndex = 0;
-        loadWords();
-    }
-
-    public String getCurrentLanguage() {
-        return currentLanguage;
-    }
-
-    public void loadWords() {
-        // Sadece seçili dilin kelimelerini çeker!
-        allWords = repository.getWordsByLanguage(currentLanguage);
-    }
-
-    public Word getCurrentWord() {
-        if (allWords != null && !allWords.isEmpty() && currentIndex < allWords.size()) {
-            return allWords.get(currentIndex);
-        }
-        return null;
-    }
-
-    public void nextWord() {
-        if (allWords != null && currentIndex < allWords.size() - 1) {
-            currentIndex++;
-        } else {
-            currentIndex = 0;
-        }
-    }
-
-    public boolean hasWords() {
-        return allWords != null && !allWords.isEmpty();
-    }
-
-    public void insertWord(Word word) {
-        repository.insert(word);
-    }
-
-    public int getTotalWordCount() {
-        return allWords != null ? allWords.size() : 0;
+    public void loadWordsFromAssets(Context context) {
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open("words.txt")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] p = line.split("\\|");
+                if (p.length >= 4) {
+                    repository.insert(new Word(p[0], p[1], p[2], p[3]));
+                }
+            }
+            loadWords();
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     public boolean isDatabaseEmpty() {
         return repository.getTotalDatabaseCount() == 0;
     }
 
-    public int getKnownCount() { return knownCount; }
-    public int getRepeatCount() { return repeatCount; }
-
-    public void incrementKnown() {
-        knownCount++;
-        nextWord();
+    public void setLanguage(String lang) {
+        this.currentLanguage = lang;
+        loadWords();
     }
 
-    public void incrementRepeat() {
-        repeatCount++;
-        nextWord();
+    public void loadWords() {
+        allWords = repository.getWordsByLanguage(currentLanguage);
+        currentIndex = 0;
+        refreshCounts();
     }
 
-    public List<Word> getAllWordsDirectly() {
-        return allWords;
+    private void refreshCounts() {
+        knownCount.postValue(repository.getKnownCount(currentLanguage));
+        unknownCount.postValue(repository.getUnknownCount(currentLanguage));
+        totalCount.postValue(repository.getTotalCountByLanguage(currentLanguage));
     }
 
-    public void resetCounters() {
-        knownCount = 0;
-        repeatCount = 0;
+    public boolean hasWords() { return allWords != null && !allWords.isEmpty(); }
+    
+    public Word getCurrentWord() { 
+        if (hasWords() && currentIndex < allWords.size()) {
+            return allWords.get(currentIndex);
+        }
+        return null;
     }
+
+    public void nextWord(boolean known) {
+        if (hasWords() && currentIndex < allWords.size()) {
+            Word currentWord = allWords.get(currentIndex);
+            currentWord.setKnown(known);
+            repository.update(currentWord);
+            
+            currentIndex++;
+            if (currentIndex >= allWords.size()) {
+                currentIndex = 0;
+            }
+            refreshCounts();
+        }
+    }
+
+    public LiveData<Integer> getKnownCount() { return knownCount; }
+    public LiveData<Integer> getUnknownCount() { return unknownCount; }
+    public LiveData<Integer> getTotalCount() { return totalCount; }
+    public int getCurrentIndex() { return currentIndex; }
+    public String getCurrentLanguage() { return currentLanguage; }
 }

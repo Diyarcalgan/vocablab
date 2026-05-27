@@ -7,18 +7,12 @@ android {
         viewBinding true
     }
     namespace 'com.diyarcalgan.vocablab'
-    compileSdk {
-        version = release(36) {
-            minorApiLevel = 1
-        }
-
-    }
-
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.diyarcalgan.vocablab"
-        minSdk 23
-        targetSdk 36
+        minSdk 24
+        targetSdk 35
         versionCode 1
         versionName "1.0"
 

@@ -14,6 +14,7 @@ public class Word {
     private String originalWord;
     private String translatedWord;
     private String exampleSentence;
+    private boolean isKnown = false;
 
     @Ignore
     public Word() {}
@@ -39,4 +40,7 @@ public class Word {
 
     public String getExampleSentence() { return exampleSentence; }
     public void setExampleSentence(String exampleSentence) { this.exampleSentence = exampleSentence; }
+
+    public boolean isKnown() { return isKnown; }
+    public void setKnown(boolean known) { isKnown = known; }
 }

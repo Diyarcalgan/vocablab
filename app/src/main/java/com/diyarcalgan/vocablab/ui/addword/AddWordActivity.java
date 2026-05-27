@@ -4,11 +4,9 @@ import android.os.Bundle;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.diyarcalgan.vocablab.databinding.ActivityAddWordBinding;
 
 public class AddWordActivity extends AppCompatActivity {
-
     private ActivityAddWordBinding binding;
     private AddWordViewModel viewModel;
 
@@ -17,28 +15,19 @@ public class AddWordActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityAddWordBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         viewModel = new ViewModelProvider(this).get(AddWordViewModel.class);
 
         binding.btnSaveWord.setOnClickListener(v -> {
-            String wordText = binding.editEnglishWord.getText().toString().trim();
-            String trMeaning = binding.editTurkishMeaning.getText().toString().trim();
-            String sentence = binding.editExampleSentence.getText().toString().trim();
+            String eng = binding.editEnglishWord.getText().toString().trim();
+            String tur = binding.editTurkishMeaning.getText().toString().trim();
+            String sent = binding.editExampleSentence.getText().toString().trim();
 
-            if (wordText.isEmpty() || trMeaning.isEmpty()) {
-                Toast.makeText(this, "Kelime ve anlamı boş bırakılamaz!", Toast.LENGTH_SHORT).show();
+            if (eng.isEmpty() || tur.isEmpty()) {
+                Toast.makeText(this, "Boş bırakılamaz!", Toast.LENGTH_SHORT).show();
                 return;
             }
-
-            // İŞTE HATAYI ÇÖZEN SATIR BURASI: İlk parametre olarak "EN" ekledik
-            viewModel.saveWord("EN", wordText, trMeaning, sentence);
-
-            Toast.makeText(this, "Kelime Eklendi!", Toast.LENGTH_SHORT).show();
-
-            binding.editEnglishWord.setText("");
-            binding.editTurkishMeaning.setText("");
-            binding.editExampleSentence.setText("");
-
+            // 4 parametreli constructor
+            viewModel.saveWord("EN", eng, tur, sent);
             finish();
         });
     }
