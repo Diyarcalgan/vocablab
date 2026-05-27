@@ -105,7 +105,6 @@ public class MainViewModel extends AndroidViewModel {
                 Word currentWord = allWords.get(currentIndex);
                 currentWord.setKnown(known);
                 
-                // Veritabanı işlemini arka planda yapalım (Thread güvenliği için)
                 new Thread(() -> {
                     try {
                         repository.update(currentWord);
@@ -122,6 +121,20 @@ public class MainViewModel extends AndroidViewModel {
             } catch (Exception e) {
                 Log.e(TAG, "Sıradaki kelimeye geçilemedi", e);
             }
+        }
+    }
+
+    public void resetProgress() {
+        if (repository != null) {
+            repository.resetProgress();
+            loadWords();
+        }
+    }
+
+    public void clearAll() {
+        if (repository != null) {
+            repository.clearAll();
+            loadWords();
         }
     }
 

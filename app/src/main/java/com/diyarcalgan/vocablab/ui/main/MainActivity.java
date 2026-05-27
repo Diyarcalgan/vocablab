@@ -6,9 +6,12 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
+import android.widget.PopupMenu;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
+import com.diyarcalgan.vocablab.R;
 import com.diyarcalgan.vocablab.databinding.ActivityMainBinding;
 import com.diyarcalgan.vocablab.ui.addword.AddWordActivity;
 import com.diyarcalgan.vocablab.data.model.Word;
@@ -85,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
         binding.btnLangDE.setOnClickListener(v -> switchLanguage("DE"));
         binding.btnAddWordPage.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
         
+        binding.btnInventory.setOnClickListener(v -> startActivity(new Intent(this, WordListActivity.class)));
+
         binding.btnShowMeaning.setOnClickListener(v -> {
             binding.textMeaning.setVisibility(View.VISIBLE);
             binding.btnShowMeaning.setVisibility(View.GONE);
@@ -111,8 +116,49 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        binding.menuIcon.setOnClickListener(v -> Toast.makeText(this, "Menü yakında eklenecek!", Toast.LENGTH_SHORT).show());
-        binding.btnInventory.setOnClickListener(v -> Toast.makeText(this, "Kelime listesi yakında eklenecek!", Toast.LENGTH_SHORT).show());
+        binding.menuIcon.setOnClickListener(v -> showMenu(v));
+    }
+
+    private void showMenu(View v) {
+        PopupMenu popup = new PopupMenu(this, v);
+        popup.getMenu().add("İstatistikleri Sıfırla");
+        popup.getMenu().add("Tüm Kelimeleri Sil");
+        popup.getMenu().add("Hakkında");
+
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getTitle().equals("İstatistikleri Sıfırla")) {
+                new Thread(() -> {
+                    viewModel.resetProgress();
+                    runOnUiThread(() -> {
+                        Toast.makeText(this, "Tüm ilerleme sıfırlandı", Toast.LENGTH_SHORT).show();
+                        updateUI();
+                    });
+                }).start();
+            } else if (item.getTitle().equals("Tüm Kelimeleri Sil")) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Tümünü Sil")
+                        .setMessage("Tüm kelimeleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")
+                        .setPositiveButton("Evet", (dialog, which) -> {
+                            new Thread(() -> {
+                                viewModel.clearAll();
+                                runOnUiThread(() -> {
+                                    Toast.makeText(this, "Tüm kelimeler silindi", Toast.LENGTH_SHORT).show();
+                                    updateUI();
+                                });
+                            }).start();
+                        })
+                        .setNegativeButton("Hayır", null)
+                        .show();
+            } else if (item.getTitle().equals("Hakkında")) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Hakkında")
+                        .setMessage("VocabLab v1.0\nKendi kelime kütüphanenizi oluşturun ve öğrenin.")
+                        .setPositiveButton("Tamam", null)
+                        .show();
+            }
+            return true;
+        });
+        popup.show();
     }
 
     private void switchLanguage(String lang) {
@@ -161,7 +207,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Sayfa geri gelindiğinde verileri tazele (yeni kelime eklenmiş olabilir)
         if (viewModel != null) {
             new Thread(() -> {
                 viewModel.loadWords();

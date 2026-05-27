@@ -22,8 +22,16 @@ public class WordRepository {
         wordDao.update(word);
     }
 
+    public void delete(Word word) {
+        wordDao.delete(word);
+    }
+
     public List<Word> getWordsByLanguage(String lang) {
         return wordDao.getWordsByLanguage(lang);
+    }
+
+    public List<Word> getAllWords() {
+        return wordDao.getAllWords();
     }
 
     public int getTotalDatabaseCount() {
@@ -40,5 +48,13 @@ public class WordRepository {
     
     public int getTotalCountByLanguage(String lang) {
         return wordDao.getTotalCountByLanguage(lang);
+    }
+
+    public void resetProgress() {
+        wordDao.resetAllProgress();
+    }
+
+    public void clearAll() {
+        wordDao.deleteAllWords();
     }
 }

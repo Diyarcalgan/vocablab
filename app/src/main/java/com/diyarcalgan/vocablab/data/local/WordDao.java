@@ -1,6 +1,7 @@
 package com.diyarcalgan.vocablab.data.local;
 
 import androidx.room.Dao;
+import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.Query;
 import androidx.room.Update;
@@ -15,8 +16,14 @@ public interface WordDao {
     @Update
     void update(Word word);
 
+    @Delete
+    void delete(Word word);
+
     @Query("SELECT * FROM words WHERE language = :lang")
     List<Word> getWordsByLanguage(String lang);
+
+    @Query("SELECT * FROM words ORDER BY id DESC")
+    List<Word> getAllWords();
 
     @Query("SELECT COUNT(*) FROM words")
     int getTotalWordCount();
@@ -29,4 +36,10 @@ public interface WordDao {
     
     @Query("SELECT COUNT(*) FROM words WHERE language = :lang")
     int getTotalCountByLanguage(String lang);
+
+    @Query("UPDATE words SET isKnown = 0")
+    void resetAllProgress();
+
+    @Query("DELETE FROM words")
+    void deleteAllWords();
 }
