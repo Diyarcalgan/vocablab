@@ -1,57 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/main"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center">
+    android:background="#F4F7FC"
+    android:padding="32dp">
 
     <TextView
+        android:id="@+id/titleAddWord"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Yeni Kelime Ekle"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
+        android:textColor="#2C3E50"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="40dp"/>
 
     <EditText
         android:id="@+id/editEnglishWord"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="İngilizce Kelime (örn: Book)"
+        android:layout_height="60dp"
+        android:hint="İngilizce Kelime (Örn: Challenge)"
         android:inputType="text"
-        android:background="#F0F0F0"
-        android:padding="16dp"
-        android:layout_marginBottom="16dp"/>
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:paddingHorizontal="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/titleAddWord"
+        android:layout_marginTop="32dp"/>
 
     <EditText
         android:id="@+id/editTurkishMeaning"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Türkçe Anlamı (örn: Kitap)"
+        android:layout_height="60dp"
+        android:hint="Türkçe Anlamı (Örn: Meydan Okuma)"
         android:inputType="text"
-        android:background="#F0F0F0"
-        android:padding="16dp"
-        android:layout_marginBottom="16dp"/>
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:paddingHorizontal="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/editEnglishWord"
+        android:layout_marginTop="16dp"/>
 
     <EditText
         android:id="@+id/editExampleSentence"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Örnek Cümle (örn: I read a book.)"
+        android:layout_height="60dp"
+        android:hint="Örnek Cümle (İsteğe Bağlı)"
         android:inputType="text"
-        android:background="#F0F0F0"
-        android:padding="16dp"
-        android:layout_marginBottom="32dp"/>
+        android:background="#FFFFFF"
+        android:elevation="2dp"
+        android:paddingHorizontal="20dp"
+        app:layout_constraintTop_toBottomOf="@+id/editTurkishMeaning"
+        android:layout_marginTop="16dp"/>
 
     <Button
         android:id="@+id/btnSaveWord"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Kelimeyi Sözlüğe Ekle"
+        android:layout_height="60dp"
+        android:text="Sözlüğe Kaydet"
         android:textSize="18sp"
-        android:padding="16dp"
-        android:backgroundTint="#4CAF50"/>
+        android:backgroundTint="#27AE60"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginBottom="32dp"/>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

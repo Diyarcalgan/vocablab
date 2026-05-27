@@ -1,6 +1,7 @@
-package com.diyarcalgan.vocablab;
+package com.diyarcalgan.vocablab.data.model;
 
 import androidx.room.Entity;
+import androidx.room.Ignore;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "words")
@@ -9,13 +10,16 @@ public class Word {
     @PrimaryKey(autoGenerate = true)
     private int id;
 
+    private String language; // YENİ: Hangi dil olduğunu tutacak (EN veya DE)
     private String originalWord;
     private String translatedWord;
-    private String exampleSentence; // Tasarımdaki örnek cümle için yeni alan
+    private String exampleSentence;
 
+    @Ignore
     public Word() {}
 
-    public Word(String originalWord, String translatedWord, String exampleSentence) {
+    public Word(String language, String originalWord, String translatedWord, String exampleSentence) {
+        this.language = language;
         this.originalWord = originalWord;
         this.translatedWord = translatedWord;
         this.exampleSentence = exampleSentence;
@@ -23,6 +27,9 @@ public class Word {
 
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
+
+    public String getLanguage() { return language; }
+    public void setLanguage(String language) { this.language = language; }
 
     public String getOriginalWord() { return originalWord; }
     public void setOriginalWord(String originalWord) { this.originalWord = originalWord; }

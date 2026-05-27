@@ -1,0 +1,100 @@
+EN|Time|Zaman|What time is it?
+EN|Year|Yıl|Happy new year!
+EN|People|İnsanlar|People are walking in the park.
+EN|Way|Yol|Show me the way.
+EN|Day|Gün|Have a nice day!
+EN|Man|Adam|He is a good man.
+EN|Thing|Şey|What is that thing?
+EN|Woman|Kadın|She is a strong woman.
+EN|Life|Hayat|Life is beautiful.
+EN|Child|Çocuk|The child is playing.
+EN|World|Dünya|We travel the world.
+EN|School|Okul|I go to school every day.
+EN|State|Durum/Devlet|The state of the economy is good.
+EN|Family|Aile|I love my family.
+EN|Student|Öğrenci|I am a university student.
+EN|Group|Grup|We study in a group.
+EN|Country|Ülke|Turkey is a beautiful country.
+EN|Problem|Sorun|No problem!
+EN|Hand|El|Wash your hands.
+EN|Part|Parça|This is my favorite part.
+EN|Place|Yer|This place is amazing.
+EN|Case|Durum|In this case, we must wait.
+EN|Week|Hafta|See you next week.
+EN|Company|Şirket|He works for a big company.
+EN|System|Sistem|The system is down.
+EN|Program|Program|I wrote a Java program.
+EN|Question|Soru|I have a question.
+EN|Work|İş|I have a lot of work.
+EN|Government|Hükümet|The government passed a new law.
+EN|Number|Numara|What is your phone number?
+EN|Night|Gece|Good night!
+EN|Point|Nokta|You have a good point.
+EN|Home|Ev|I am going home.
+EN|Water|Su|Drink plenty of water.
+EN|Room|Oda|Clean your room.
+EN|Mother|Anne|My mother is a teacher.
+EN|Area|Alan|This area is restricted.
+EN|Money|Para|I need some money.
+EN|Story|Hikaye|Tell me a story.
+EN|Fact|Gerçek|That is a known fact.
+EN|Month|Ay|Next month is my birthday.
+EN|Right|Doğru/Sağ|Turn right at the corner.
+EN|Study|Çalışmak|I study software engineering.
+EN|Book|Kitap|I am reading a book.
+EN|Eye|Göz|Close your eyes.
+EN|Job|İş|He is looking for a job.
+EN|Word|Kelime|Learn one new word every day.
+EN|Business|İş/Ticaret|Business is going well.
+EN|Issue|Konu/Mesele|We need to discuss this issue.
+EN|Side|Taraf|Come to my side.
+DE|Zeit|Zaman|Hast du Zeit?
+DE|Jahr|Yıl|Das Jahr hat 12 Monate.
+DE|Mensch|İnsan|Jeder Mensch ist anders.
+DE|Weg|Yol|Das ist der richtige Weg.
+DE|Tag|Gün|Guten Tag!
+DE|Mann|Adam|Der Mann liest ein Buch.
+DE|Ding|Şey|Was ist das für ein Ding?
+DE|Frau|Kadın|Die Frau trinkt Kaffee.
+DE|Leben|Hayat|Das Leben ist schön.
+DE|Kind|Çocuk|Das Kind spielt im Garten.
+DE|Welt|Dünya|Die Welt ist groß.
+DE|Schule|Okul|Ich gehe zur Schule.
+DE|Staat|Devlet|Der Staat hilft den Bürgern.
+DE|Familie|Aile|Meine Familie ist klein.
+DE|Student|Öğrenci|Er ist ein Student.
+DE|Gruppe|Grup|Wir arbeiten in einer Gruppe.
+DE|Land|Ülke|Deutschland ist ein schönes Land.
+DE|Problem|Sorun|Kein Problem!
+DE|Hand|El|Gib mir deine Hand.
+DE|Teil|Parça|Das ist ein Teil des Autos.
+DE|Ort|Yer|Das ist ein schöner Ort.
+DE|Fall|Durum/Vaka|In diesem Fall müssen wir warten.
+DE|Woche|Hafta|Wir sehen uns nächste Woche.
+DE|Unternehmen|Şirket|Er arbeitet in einem Unternehmen.
+DE|System|Sistem|Das System funktioniert nicht.
+DE|Programm|Program|Ich lerne ein neues Programm.
+DE|Frage|Soru|Ich habe eine Frage.
+DE|Arbeit|İş|Ich habe viel Arbeit.
+DE|Regierung|Hükümet|Die Regierung hat ein neues Gesetz.
+DE|Nummer|Numara|Wie ist deine Nummer?
+DE|Nacht|Gece|Gute Nacht!
+DE|Punkt|Nokta|Das ist ein guter Punkt.
+DE|Haus|Ev|Ich gehe nach Haus.
+DE|Wasser|Su|Trink viel Wasser.
+DE|Zimmer|Oda|Räum dein Zimmer auf.
+DE|Mutter|Anne|Meine Mutter kocht gut.
+DE|Bereich|Alan|Dieser Bereich ist gesperrt.
+DE|Geld|Para|Ich habe kein Geld.
+DE|Geschichte|Hikaye|Erzähl mir eine Geschichte.
+DE|Fakt|Gerçek|Das ist ein Fakt.
+DE|Monat|Ay|Nächsten Monat fahre ich nach Berlin.
+DE|Recht|Hak/Doğru|Du hast Recht.
+DE|Buch|Kitap|Das Buch ist interessant.
+DE|Auge|Göz|Mach die Augen zu.
+DE|Job|İş|Ich suche einen Job.
+DE|Wort|Kelime|Das ist ein neues Wort.
+DE|Geschäft|İş/Dükkan|Das Geschäft ist geschlossen.
+DE|Thema|Konu|Das ist ein wichtiges Thema.
+DE|Seite|Sayfa/Taraf|Auf der anderen Seite.
+DE|Art|Tür|Das ist eine gute Art.

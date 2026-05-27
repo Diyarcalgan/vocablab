@@ -12,10 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VocabLab">
         <activity
-            android:name=".AddWordActivity"
+            android:name=".ui.addword.AddWordActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
