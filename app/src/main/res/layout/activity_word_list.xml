@@ -110,10 +110,9 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Tümü"
+                        android:textColor="@color/white"
                         app:chipBackgroundColor="@color/primary"
-                        app:chipSurfaceControl="false"
-                        app:ensureMinTouchTargetSize="false"
-                        app:textColor="@color/white" />
+                        app:ensureMinTouchTargetSize="false" />
 
                     <com.google.android.material.chip.Chip
                         style="@style/Widget.Material3.Chip.Filter"
