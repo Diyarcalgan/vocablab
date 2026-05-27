@@ -36,21 +36,18 @@ public class MainViewModel extends AndroidViewModel {
 
     public void loadWordsFromAssets(Context context) {
         if (repository == null) return;
-        new Thread(() -> {
-            try {
-                BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open("words.txt")));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    String[] p = line.split("\\|");
-                    if (p.length >= 4) {
-                        repository.insert(new Word(p[0].trim(), p[1].trim(), p[2].trim(), p[3].trim()));
-                    }
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open("words.txt")));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] p = line.split("\\|");
+                if (p.length >= 4) {
+                    repository.insert(new Word(p[0].trim(), p[1].trim(), p[2].trim(), p[3].trim()));
                 }
-                loadWords();
-            } catch (Exception e) {
-                Log.e(TAG, "Assets reading error", e);
             }
-        }).start();
+        } catch (Exception e) {
+            Log.e(TAG, "Assets reading error", e);
+        }
     }
 
     public boolean isDatabaseEmpty() {
@@ -102,6 +99,16 @@ public class MainViewModel extends AndroidViewModel {
     }
 
     public String getCurrentLanguage() { return currentLanguage; }
+
+    public void setCurrentWordId(int wordId) {
+        if (allWords == null || allWords.isEmpty()) return;
+        for (int i = 0; i < allWords.size(); i++) {
+            if (allWords.get(i) != null && allWords.get(i).getId() == wordId) {
+                currentIndex = i;
+                return;
+            }
+        }
+    }
 
     public void nextWord(boolean known) {
         if (repository == null) return;

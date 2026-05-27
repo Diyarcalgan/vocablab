@@ -1,7 +1,6 @@
 package com.diyarcalgan.vocablab.ui.main;
 
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
@@ -21,6 +20,8 @@ public class MainActivity extends AppCompatActivity {
     private MainViewModel viewModel;
     private TextToSpeech textToSpeech;
     private boolean isTTSReady = false;
+    private int startWordId = -1;
+    private String startLang = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +31,11 @@ public class MainActivity extends AppCompatActivity {
             setContentView(binding.getRoot());
 
             viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+            Intent intent = getIntent();
+            if (intent != null) {
+                startWordId = intent.getIntExtra("wordId", -1);
+                startLang = intent.getStringExtra("lang");
+            }
 
             initTTS();
             initObservers();
@@ -41,8 +47,14 @@ public class MainActivity extends AppCompatActivity {
                 try {
                     if (viewModel.isDatabaseEmpty()) {
                         viewModel.loadWordsFromAssets(this);
+                    }
+                    if (startLang != null && !startLang.isEmpty()) {
+                        viewModel.setLanguage(startLang);
                     } else {
                         viewModel.loadWords();
+                    }
+                    if (startWordId != -1) {
+                        viewModel.setCurrentWordId(startWordId);
                     }
                     runOnUiThread(this::updateUI);
                 } catch (Exception e) {
@@ -103,26 +115,27 @@ public class MainActivity extends AppCompatActivity {
             resetCardAndUI();
         });
 
-        binding.btnAddQuick.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
+        binding.fabAdd.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
 
         binding.btnTranslate.setOnClickListener(v -> {
-            String current = viewModel.getCurrentLanguage();
-            String next = current.equals("EN") ? "DE" : "EN";
-            viewModel.setLanguage(next);
-            binding.textLangSource.setText(next);
-            if (isTTSReady && textToSpeech != null) {
-                textToSpeech.setLanguage(next.equals("EN") ? Locale.US : Locale.GERMANY);
-            }
-            updateUI();
-        });
-
-        binding.textWord.setOnClickListener(v -> {
             if (isTTSReady && textToSpeech != null) {
                 Word currentWord = viewModel.getCurrentWord();
                 if (currentWord != null) {
                     textToSpeech.speak(currentWord.getOriginalWord(), TextToSpeech.QUEUE_FLUSH, null, "vocab_tts");
                 }
             }
+        });
+
+        binding.btnLangEN.setOnClickListener(v -> {
+            viewModel.setLanguage("EN");
+            applyLanguageUI();
+            resetCardAndUI();
+        });
+
+        binding.btnLangDE.setOnClickListener(v -> {
+            viewModel.setLanguage("DE");
+            applyLanguageUI();
+            resetCardAndUI();
         });
     }
 
@@ -154,8 +167,25 @@ public class MainActivity extends AppCompatActivity {
         updateUI();
     }
 
+    private void applyLanguageUI() {
+        if (binding == null || viewModel == null) return;
+        String lang = viewModel.getCurrentLanguage();
+        boolean isEN = "EN".equals(lang);
+
+        binding.btnLangEN.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(isEN ? R.color.primary : R.color.surface_container_high)));
+        binding.btnLangEN.setTextColor(getColor(isEN ? R.color.white : R.color.on_surface_variant));
+
+        binding.btnLangDE.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getColor(!isEN ? R.color.primary : R.color.surface_container_high)));
+        binding.btnLangDE.setTextColor(getColor(!isEN ? R.color.white : R.color.on_surface_variant));
+
+        if (isTTSReady && textToSpeech != null) {
+            textToSpeech.setLanguage(isEN ? Locale.US : Locale.GERMANY);
+        }
+    }
+
     private void updateUI() {
         if (binding == null || viewModel == null) return;
+        applyLanguageUI();
         if (viewModel.hasWords()) {
             Word currentWord = viewModel.getCurrentWord();
             if (currentWord != null) {

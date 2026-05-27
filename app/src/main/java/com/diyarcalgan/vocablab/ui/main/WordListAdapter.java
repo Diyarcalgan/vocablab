@@ -17,9 +17,14 @@ import java.util.List;
 public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordViewHolder> {
     private List<Word> words = new ArrayList<>();
     private OnWordDeleteListener deleteListener;
+    private OnWordClickListener clickListener;
 
     public interface OnWordDeleteListener {
         void onWordDelete(Word word);
+    }
+
+    public interface OnWordClickListener {
+        void onWordClick(Word word);
     }
 
     public void setWords(List<Word> words) {
@@ -29,6 +34,10 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
 
     public void setOnWordDeleteListener(OnWordDeleteListener listener) {
         this.deleteListener = listener;
+    }
+
+    public void setOnWordClickListener(OnWordClickListener listener) {
+        this.clickListener = listener;
     }
 
     @NonNull
@@ -60,6 +69,12 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
         holder.btnDelete.setOnClickListener(v -> {
             if (deleteListener != null) {
                 deleteListener.onWordDelete(word);
+            }
+        });
+
+        holder.itemView.setOnClickListener(v -> {
+            if (clickListener != null) {
+                clickListener.onWordClick(word);
             }
         });
     }

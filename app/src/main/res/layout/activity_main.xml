@@ -36,15 +36,9 @@
             android:textSize="28sp"
             android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/btnAddQuick"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="8dp"
-            android:text="Ekle"
-            android:textColor="@color/primary"
-            android:textStyle="bold" />
+        <View
+            android:layout_width="40dp"
+            android:layout_height="40dp" />
     </LinearLayout>
 
     <!-- Progress Pills -->
@@ -101,6 +95,7 @@
 
     <!-- Language Indicator -->
     <LinearLayout
+        android:id="@+id/layoutLanguage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
@@ -114,13 +109,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/layoutPills">
 
-        <TextView
-            android:id="@+id/textLangSource"
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLangEN"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="32dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="0dp"
             android:text="EN"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            app:backgroundTint="@color/primary"
+            app:cornerRadius="999dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnLangDE"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="8dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:minHeight="0dp"
+            android:text="DE"
+            android:textAllCaps="false"
             android:textColor="@color/on_surface_variant"
-            android:textStyle="bold" />
+            app:backgroundTint="@color/surface_container_high"
+            app:cornerRadius="999dp" />
 
         <ImageView
             android:layout_width="16dp"
@@ -143,10 +157,12 @@
         android:id="@+id/cardStack"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginHorizontal="32dp"
-        android:layout_marginVertical="32dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="12dp"
+        android:maxHeight="420dp"
         app:layout_constraintBottom_toTopOf="@id/layoutActions"
-        app:layout_constraintTop_toBottomOf="@id/layoutPills">
+        app:layout_constraintTop_toBottomOf="@id/layoutLanguage">
 
         <!-- Visual Stack Layers -->
         <View
@@ -166,12 +182,15 @@
             android:background="@drawable/bg_card" />
 
         <!-- Main Card -->
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/mainCard"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp">
+            app:cardBackgroundColor="@color/white"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="4dp"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="2dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -186,7 +205,7 @@
                     android:layout_height="wrap_content"
                     android:text="Serendipity"
                     android:textColor="@color/on_surface"
-                    android:textSize="32sp"
+                    android:textSize="34sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
@@ -236,7 +255,7 @@
                     android:textColor="@color/on_surface"
                     app:cornerRadius="999dp" />
             </LinearLayout>
-        </androidx.cardview.widget.CardView>
+        </com.google.android.material.card.MaterialCardView>
     </FrameLayout>
 
     <!-- Action Buttons -->
@@ -244,10 +263,10 @@
         android:id="@+id/layoutActions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="110dp"
+        android:layout_marginBottom="8dp"
         android:orientation="horizontal"
         android:paddingHorizontal="32dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintBottom_toTopOf="@id/bottomNavigation">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSwipeLeft"
@@ -290,12 +309,27 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="72dp"
         android:background="@drawable/bg_nav"
+        android:paddingTop="6dp"
+        android:paddingBottom="10dp"
         app:elevation="8dp"
         app:itemIconTint="@color/primary"
         app:itemTextColor="@color/primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/bottom_nav_menu" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAdd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="88dp"
+        android:contentDescription="@string/app_name"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

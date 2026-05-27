@@ -33,17 +33,9 @@
             android:textSize="24sp"
             android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnAddWord"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:backgroundTint="@color/primary_container"
-            android:text="Ekle"
-            android:textAllCaps="false"
-            android:textColor="@color/on_primary"
-            app:cornerRadius="999dp"
-            app:icon="@android:drawable/ic_input_add"
-            app:iconTint="@color/on_primary" />
+        <View
+            android:layout_width="40dp"
+            android:layout_height="40dp" />
     </LinearLayout>
 
     <ScrollView
@@ -148,12 +140,27 @@
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNavigation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="72dp"
         android:background="@drawable/bg_nav"
+        android:paddingTop="6dp"
+        android:paddingBottom="10dp"
         app:elevation="8dp"
         app:itemIconTint="@color/primary"
         app:itemTextColor="@color/primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:menu="@menu/bottom_nav_menu" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddWord"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="88dp"
+        android:contentDescription="@string/app_name"
+        android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/primary"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
