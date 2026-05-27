@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Yeni Kelime Ekle"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="32dp"/>
+
+    <EditText
+        android:id="@+id/editEnglishWord"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="İngilizce Kelime (örn: Book)"
+        android:inputType="text"
+        android:background="#F0F0F0"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editTurkishMeaning"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Türkçe Anlamı (örn: Kitap)"
+        android:inputType="text"
+        android:background="#F0F0F0"
+        android:padding="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <EditText
+        android:id="@+id/editExampleSentence"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Örnek Cümle (örn: I read a book.)"
+        android:inputType="text"
+        android:background="#F0F0F0"
+        android:padding="16dp"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/btnSaveWord"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kelimeyi Sözlüğe Ekle"
+        android:textSize="18sp"
+        android:padding="16dp"
+        android:backgroundTint="#4CAF50"/>
+
+</LinearLayout>
