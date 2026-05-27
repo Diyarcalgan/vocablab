@@ -15,7 +15,13 @@ public class AddWordViewModel extends AndroidViewModel {
     }
 
     public void saveWord(String lang, String eng, String tur, String sentence) {
-        Word newWord = new Word(lang, eng, tur, sentence);
-        repository.insert(newWord);
+        new Thread(() -> {
+            try {
+                Word newWord = new Word(lang, eng, tur, sentence);
+                repository.insert(newWord);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 }

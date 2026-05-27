@@ -6,9 +6,7 @@ import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
-import android.widget.PopupMenu;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.diyarcalgan.vocablab.R;
@@ -38,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
             initListeners();
             setupBottomNav();
 
-            // Initial load
+            // Background thread for database check and load
             new Thread(() -> {
                 try {
                     if (viewModel.isDatabaseEmpty()) {
@@ -48,64 +46,76 @@ public class MainActivity extends AppCompatActivity {
                     }
                     runOnUiThread(this::updateUI);
                 } catch (Exception e) {
-                    Log.e(TAG, "Initial load error", e);
+                    Log.e(TAG, "Database init error", e);
                 }
             }).start();
         } catch (Exception e) {
-            Log.e(TAG, "onCreate error", e);
+            Log.e(TAG, "onCreate crash prevented", e);
+            // If inflation fails, we can't do much, but let's try to show a toast
+            Toast.makeText(this, "Arayüz yüklenirken bir hata oluştu.", Toast.LENGTH_LONG).show();
         }
     }
 
     private void initTTS() {
-        textToSpeech = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                isTTSReady = true;
-                textToSpeech.setLanguage(Locale.US);
-            }
-        });
+        try {
+            textToSpeech = new TextToSpeech(this, status -> {
+                if (status == TextToSpeech.SUCCESS) {
+                    isTTSReady = true;
+                    textToSpeech.setLanguage(Locale.US);
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "TTS init error", e);
+        }
     }
 
     private void initObservers() {
-        viewModel.getKnownCount().observe(this, count -> binding.textKnownCount.setText("Bilinen: " + count));
-        viewModel.getUnknownCount().observe(this, count -> binding.textRepeatCount.setText("Tekrar: " + count));
-        viewModel.getTotalCount().observe(this, count -> binding.textTotalCount.setText("Toplam: " + count));
+        if (viewModel == null || binding == null) return;
+        viewModel.getKnownCount().observe(this, count -> {
+            if (binding != null) binding.textKnownCount.setText("Bilinen: " + (count != null ? count : 0));
+        });
+        viewModel.getUnknownCount().observe(this, count -> {
+            if (binding != null) binding.textRepeatCount.setText("Tekrar: " + (count != null ? count : 0));
+        });
+        viewModel.getTotalCount().observe(this, count -> {
+            if (binding != null) binding.textTotalCount.setText("Toplam: " + (count != null ? count : 0));
+        });
     }
 
     private void initListeners() {
-        // Show translation
+        if (binding == null) return;
+
         binding.btnShowMeaning.setOnClickListener(v -> {
             binding.translationArea.setVisibility(View.VISIBLE);
+            binding.translationArea.setAlpha(0f);
             binding.translationArea.animate().alpha(1f).translationY(0).setDuration(300);
             binding.btnShowMeaning.setVisibility(View.GONE);
-            binding.mainCard.setCardElevation(8f);
+            binding.mainCard.setCardElevation(12f);
         });
 
-        // Swipe Right (Learned)
         binding.btnSwipeRight.setOnClickListener(v -> {
             viewModel.nextWord(true);
             resetCardAndUI();
         });
 
-        // Swipe Left (Repeat)
         binding.btnSwipeLeft.setOnClickListener(v -> {
             viewModel.nextWord(false);
             resetCardAndUI();
         });
 
-        // Add word
         binding.btnAddQuick.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
 
-        // Translate / Language Toggle
         binding.btnTranslate.setOnClickListener(v -> {
             String current = viewModel.getCurrentLanguage();
             String next = current.equals("EN") ? "DE" : "EN";
             viewModel.setLanguage(next);
             binding.textLangSource.setText(next);
-            if (isTTSReady) textToSpeech.setLanguage(next.equals("EN") ? Locale.US : Locale.GERMANY);
+            if (isTTSReady && textToSpeech != null) {
+                textToSpeech.setLanguage(next.equals("EN") ? Locale.US : Locale.GERMANY);
+            }
             updateUI();
         });
 
-        // Speak word
         binding.textWord.setOnClickListener(v -> {
             if (isTTSReady && textToSpeech != null) {
                 Word currentWord = viewModel.getCurrentWord();
@@ -117,6 +127,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupBottomNav() {
+        if (binding == null) return;
         binding.bottomNavigation.setSelectedItemId(R.id.nav_study);
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -134,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void resetCardAndUI() {
+        if (binding == null) return;
         binding.translationArea.setVisibility(View.INVISIBLE);
         binding.translationArea.setAlpha(0f);
         binding.translationArea.setTranslationY(20f);
@@ -143,6 +155,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
+        if (binding == null || viewModel == null) return;
         if (viewModel.hasWords()) {
             Word currentWord = viewModel.getCurrentWord();
             if (currentWord != null) {
@@ -161,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        binding.bottomNavigation.setSelectedItemId(R.id.nav_study);
+        if (binding != null) binding.bottomNavigation.setSelectedItemId(R.id.nav_study);
         if (viewModel != null) {
             new Thread(() -> {
                 viewModel.loadWords();
@@ -176,6 +189,7 @@ public class MainActivity extends AppCompatActivity {
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        binding = null;
         super.onDestroy();
     }
 }

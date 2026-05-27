@@ -2,6 +2,7 @@ package com.diyarcalgan.vocablab.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,36 +11,46 @@ import com.diyarcalgan.vocablab.data.WordRepository;
 import com.diyarcalgan.vocablab.databinding.ActivityProfileBinding;
 
 public class ProfileActivity extends AppCompatActivity {
+    private static final String TAG = "ProfileActivity";
     private ActivityProfileBinding binding;
     private WordRepository repository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityProfileBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        try {
+            binding = ActivityProfileBinding.inflate(getLayoutInflater());
+            setContentView(binding.getRoot());
 
-        repository = new WordRepository(getApplication());
-        setupBottomNav();
+            repository = new WordRepository(getApplication());
+            setupBottomNav();
 
-        binding.btnResetAll.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Verileri Sıfırla")
-                    .setMessage("Tüm kelimeler ve ilerleme silinecek. Emin misiniz?")
-                    .setPositiveButton("Evet", (dialog, which) -> {
-                        new Thread(() -> {
-                            repository.clearAll();
-                            runOnUiThread(() -> {
-                                Toast.makeText(this, "Tüm veriler silindi", Toast.LENGTH_SHORT).show();
-                            });
-                        }).start();
-                    })
-                    .setNegativeButton("Hayır", null)
-                    .show();
-        });
+            binding.btnResetAll.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("Verileri Sıfırla")
+                        .setMessage("Tüm kelimeler ve ilerleme silinecek. Emin misiniz?")
+                        .setPositiveButton("Evet", (dialog, which) -> {
+                            new Thread(() -> {
+                                try {
+                                    repository.clearAll();
+                                    runOnUiThread(() -> {
+                                        Toast.makeText(this, "Tüm veriler silindi", Toast.LENGTH_SHORT).show();
+                                    });
+                                } catch (Exception e) {
+                                    Log.e(TAG, "Reset error", e);
+                                }
+                            }).start();
+                        })
+                        .setNegativeButton("Hayır", null)
+                        .show();
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate error", e);
+        }
     }
 
     private void setupBottomNav() {
+        if (binding == null) return;
         binding.bottomNavigation.setSelectedItemId(R.id.nav_profile);
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -61,6 +72,12 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        binding.bottomNavigation.setSelectedItemId(R.id.nav_profile);
+        if (binding != null) binding.bottomNavigation.setSelectedItemId(R.id.nav_profile);
+    }
+
+    @Override
+    protected void onDestroy() {
+        binding = null;
+        super.onDestroy();
     }
 }

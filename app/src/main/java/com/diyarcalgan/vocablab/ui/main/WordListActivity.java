@@ -2,7 +2,7 @@ package com.diyarcalgan.vocablab.ui.main;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.util.Log;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,6 +15,7 @@ import com.diyarcalgan.vocablab.ui.addword.AddWordActivity;
 import java.util.List;
 
 public class WordListActivity extends AppCompatActivity {
+    private static final String TAG = "WordListActivity";
     private ActivityWordListBinding binding;
     private WordRepository repository;
     private WordListAdapter adapter;
@@ -22,21 +23,25 @@ public class WordListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityWordListBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        try {
+            binding = ActivityWordListBinding.inflate(getLayoutInflater());
+            setContentView(binding.getRoot());
 
-        repository = new WordRepository(getApplication());
-        setupRecyclerView();
-        setupBottomNav();
+            repository = new WordRepository(getApplication());
+            setupRecyclerView();
+            setupBottomNav();
 
-        binding.btnAddWord.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
-        
-        loadWords();
+            binding.btnAddWord.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
+            
+            loadWords();
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate error", e);
+        }
     }
 
     private void setupRecyclerView() {
+        if (binding == null) return;
         adapter = new WordListAdapter();
-        // Modern bento grid style: 2 columns
         binding.recyclerViewWords.setLayoutManager(new GridLayoutManager(this, 2));
         binding.recyclerViewWords.setAdapter(adapter);
 
@@ -46,8 +51,12 @@ public class WordListActivity extends AppCompatActivity {
                     .setMessage("'" + word.getOriginalWord() + "' silinsin mi?")
                     .setPositiveButton("Evet", (dialog, which) -> {
                         new Thread(() -> {
-                            repository.delete(word);
-                            runOnUiThread(this::loadWords);
+                            try {
+                                repository.delete(word);
+                                runOnUiThread(this::loadWords);
+                            } catch (Exception e) {
+                                Log.e(TAG, "Delete error", e);
+                            }
                         }).start();
                     })
                     .setNegativeButton("Hayır", null)
@@ -56,6 +65,7 @@ public class WordListActivity extends AppCompatActivity {
     }
 
     private void setupBottomNav() {
+        if (binding == null) return;
         binding.bottomNavigation.setSelectedItemId(R.id.nav_list);
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             int id = item.getItemId();
@@ -75,19 +85,32 @@ public class WordListActivity extends AppCompatActivity {
     }
 
     private void loadWords() {
+        if (repository == null) return;
         new Thread(() -> {
-            List<Word> allWords = repository.getAllWords();
-            runOnUiThread(() -> {
-                adapter.setWords(allWords);
-                binding.textWordCount.setText((allWords != null ? allWords.size() : 0) + " kelime öğreniliyor");
-            });
+            try {
+                List<Word> allWords = repository.getAllWords();
+                runOnUiThread(() -> {
+                    if (binding != null) {
+                        adapter.setWords(allWords);
+                        binding.textWordCount.setText((allWords != null ? allWords.size() : 0) + " kelime öğreniliyor");
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(TAG, "Load words error", e);
+            }
         }).start();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        binding.bottomNavigation.setSelectedItemId(R.id.nav_list);
+        if (binding != null) binding.bottomNavigation.setSelectedItemId(R.id.nav_list);
         loadWords();
+    }
+
+    @Override
+    protected void onDestroy() {
+        binding = null;
+        super.onDestroy();
     }
 }

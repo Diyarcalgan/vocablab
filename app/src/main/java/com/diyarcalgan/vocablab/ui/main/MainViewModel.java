@@ -3,6 +3,7 @@ package com.diyarcalgan.vocablab.ui.main;
 import android.app.Application;
 import android.content.Context;
 import android.util.Log;
+import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -24,30 +25,32 @@ public class MainViewModel extends AndroidViewModel {
     private final MutableLiveData<Integer> totalCount = new MutableLiveData<>(0);
     private final MutableLiveData<Integer> unknownCount = new MutableLiveData<>(0);
 
-    public MainViewModel(Application application) {
+    public MainViewModel(@NonNull Application application) {
         super(application);
         try {
             repository = new WordRepository(application);
         } catch (Exception e) {
-            Log.e(TAG, "Repository başlatılamadı", e);
+            Log.e(TAG, "Repository initialization failed", e);
         }
     }
 
     public void loadWordsFromAssets(Context context) {
         if (repository == null) return;
-        try {
-            BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open("words.txt")));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                String[] p = line.split("\\|");
-                if (p.length >= 4) {
-                    repository.insert(new Word(p[0].trim(), p[1].trim(), p[2].trim(), p[3].trim()));
+        new Thread(() -> {
+            try {
+                BufferedReader reader = new BufferedReader(new InputStreamReader(context.getAssets().open("words.txt")));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] p = line.split("\\|");
+                    if (p.length >= 4) {
+                        repository.insert(new Word(p[0].trim(), p[1].trim(), p[2].trim(), p[3].trim()));
+                    }
                 }
+                loadWords();
+            } catch (Exception e) {
+                Log.e(TAG, "Assets reading error", e);
             }
-            loadWords();
-        } catch (Exception e) {
-            Log.e(TAG, "Assets okuma hatası", e);
-        }
+        }).start();
     }
 
     public boolean isDatabaseEmpty() {
@@ -55,7 +58,7 @@ public class MainViewModel extends AndroidViewModel {
         try {
             return repository.getTotalDatabaseCount() == 0;
         } catch (Exception e) {
-            Log.e(TAG, "Veritabanı kontrol hatası", e);
+            Log.e(TAG, "Database check error", e);
             return true;
         }
     }
@@ -73,19 +76,19 @@ public class MainViewModel extends AndroidViewModel {
             currentIndex = 0;
             refreshCounts();
         } catch (Exception e) {
-            Log.e(TAG, "Kelimeler yüklenemedi", e);
+            Log.e(TAG, "Words loading failed", e);
             allWords = new ArrayList<>();
         }
     }
 
-    private void refreshCounts() {
+    public void refreshCounts() {
         if (repository == null) return;
         try {
             knownCount.postValue(repository.getKnownCount(currentLanguage));
             unknownCount.postValue(repository.getUnknownCount(currentLanguage));
             totalCount.postValue(repository.getTotalCountByLanguage(currentLanguage));
         } catch (Exception e) {
-            Log.e(TAG, "Sayaçlar güncellenemedi", e);
+            Log.e(TAG, "Counters update failed", e);
         }
     }
 
@@ -97,6 +100,8 @@ public class MainViewModel extends AndroidViewModel {
         }
         return null;
     }
+
+    public String getCurrentLanguage() { return currentLanguage; }
 
     public void nextWord(boolean known) {
         if (repository == null) return;
@@ -110,7 +115,7 @@ public class MainViewModel extends AndroidViewModel {
                         repository.update(currentWord);
                         refreshCounts();
                     } catch (Exception e) {
-                        Log.e(TAG, "Kelime güncellenemedi", e);
+                        Log.e(TAG, "Word update failed", e);
                     }
                 }).start();
                 
@@ -119,28 +124,30 @@ public class MainViewModel extends AndroidViewModel {
                     currentIndex = 0;
                 }
             } catch (Exception e) {
-                Log.e(TAG, "Sıradaki kelimeye geçilemedi", e);
+                Log.e(TAG, "Next word transition failed", e);
             }
         }
     }
 
     public void resetProgress() {
         if (repository != null) {
-            repository.resetProgress();
-            loadWords();
+            new Thread(() -> {
+                repository.resetProgress();
+                loadWords();
+            }).start();
         }
     }
 
     public void clearAll() {
         if (repository != null) {
-            repository.clearAll();
-            loadWords();
+            new Thread(() -> {
+                repository.clearAll();
+                loadWords();
+            }).start();
         }
     }
 
     public LiveData<Integer> getKnownCount() { return knownCount; }
     public LiveData<Integer> getUnknownCount() { return unknownCount; }
     public LiveData<Integer> getTotalCount() { return totalCount; }
-    public int getCurrentIndex() { return currentIndex; }
-    public String getCurrentLanguage() { return currentLanguage; }
 }
