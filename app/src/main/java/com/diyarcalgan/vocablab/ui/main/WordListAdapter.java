@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,10 +45,16 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
         holder.textTranslated.setText(word.getTranslatedWord());
         holder.textLang.setText(word.getLanguage());
         
-        if ("DE".equals(word.getLanguage())) {
-            holder.textLang.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#E67E22")));
+        if (word.isKnown()) {
+            holder.iconStatus.setImageResource(android.R.drawable.checkbox_on_background);
+            holder.iconStatus.setColorFilter(Color.parseColor("#006E2F"));
+            holder.progressBar.setProgress(100);
+            holder.textStatusLabel.setText("Öğrenildi");
         } else {
-            holder.textLang.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#3498DB")));
+            holder.iconStatus.setImageResource(android.R.drawable.ic_menu_edit);
+            holder.iconStatus.setColorFilter(Color.parseColor("#767586"));
+            holder.progressBar.setProgress(30);
+            holder.textStatusLabel.setText("Çalışılıyor");
         }
 
         holder.btnDelete.setOnClickListener(v -> {
@@ -63,15 +70,19 @@ public class WordListAdapter extends RecyclerView.Adapter<WordListAdapter.WordVi
     }
 
     static class WordViewHolder extends RecyclerView.ViewHolder {
-        TextView textOriginal, textTranslated, textLang;
-        ImageView btnDelete;
+        TextView textOriginal, textTranslated, textLang, textStatusLabel;
+        ImageView btnDelete, iconStatus;
+        ProgressBar progressBar;
 
         public WordViewHolder(@NonNull View itemView) {
             super(itemView);
             textOriginal = itemView.findViewById(R.id.textItemOriginal);
             textTranslated = itemView.findViewById(R.id.textItemTranslated);
             textLang = itemView.findViewById(R.id.textItemLang);
+            textStatusLabel = itemView.findViewById(R.id.textStatusLabel);
             btnDelete = itemView.findViewById(R.id.btnDeleteItem);
+            iconStatus = itemView.findViewById(R.id.iconStatus);
+            progressBar = itemView.findViewById(R.id.itemProgress);
         }
     }
 }

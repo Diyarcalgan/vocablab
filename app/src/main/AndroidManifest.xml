@@ -18,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.VocabLab">
         <activity
+            android:name=".ui.main.ProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.main.WordListActivity"
             android:exported="false" />
         <activity

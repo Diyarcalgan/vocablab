@@ -36,8 +36,9 @@ public class MainActivity extends AppCompatActivity {
             initTTS();
             initObservers();
             initListeners();
+            setupBottomNav();
 
-            // Veritabanı işlemleri için arka plan thread'i
+            // Initial load
             new Thread(() -> {
                 try {
                     if (viewModel.isDatabaseEmpty()) {
@@ -47,166 +48,120 @@ public class MainActivity extends AppCompatActivity {
                     }
                     runOnUiThread(this::updateUI);
                 } catch (Exception e) {
-                    Log.e(TAG, "Başlangıç verisi yükleme hatası", e);
+                    Log.e(TAG, "Initial load error", e);
                 }
             }).start();
         } catch (Exception e) {
-            Log.e(TAG, "onCreate hatası", e);
-            Toast.makeText(this, "Uygulama başlatılamadı: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            Log.e(TAG, "onCreate error", e);
         }
     }
 
     private void initTTS() {
-        try {
-            textToSpeech = new TextToSpeech(this, status -> {
-                if (status == TextToSpeech.SUCCESS) {
-                    isTTSReady = true;
-                    textToSpeech.setLanguage(Locale.US);
-                } else {
-                    Log.e(TAG, "TTS Başlatılamadı");
-                }
-            });
-        } catch (Exception e) {
-            Log.e(TAG, "TTS servisi hatası", e);
-        }
+        textToSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                isTTSReady = true;
+                textToSpeech.setLanguage(Locale.US);
+            }
+        });
     }
 
     private void initObservers() {
-        viewModel.getKnownCount().observe(this, count -> {
-            if (binding != null) binding.textKnownCount.setText("Bildiğim: " + (count != null ? count : 0));
-        });
-        viewModel.getUnknownCount().observe(this, count -> {
-            if (binding != null) binding.textRepeatCount.setText("Tekrar: " + (count != null ? count : 0));
-        });
-        viewModel.getTotalCount().observe(this, count -> {
-            if (binding != null) binding.textTotalCount.setText("Top: " + (count != null ? count : 0));
-        });
+        viewModel.getKnownCount().observe(this, count -> binding.textKnownCount.setText("Bilinen: " + count));
+        viewModel.getUnknownCount().observe(this, count -> binding.textRepeatCount.setText("Tekrar: " + count));
+        viewModel.getTotalCount().observe(this, count -> binding.textTotalCount.setText("Toplam: " + count));
     }
 
     private void initListeners() {
-        binding.btnLangEN.setOnClickListener(v -> switchLanguage("EN"));
-        binding.btnLangDE.setOnClickListener(v -> switchLanguage("DE"));
-        binding.btnAddWordPage.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
-        
-        binding.btnInventory.setOnClickListener(v -> startActivity(new Intent(this, WordListActivity.class)));
-
+        // Show translation
         binding.btnShowMeaning.setOnClickListener(v -> {
-            binding.textMeaning.setVisibility(View.VISIBLE);
+            binding.translationArea.setVisibility(View.VISIBLE);
+            binding.translationArea.animate().alpha(1f).translationY(0).setDuration(300);
             binding.btnShowMeaning.setVisibility(View.GONE);
+            binding.mainCard.setCardElevation(8f);
         });
 
+        // Swipe Right (Learned)
         binding.btnSwipeRight.setOnClickListener(v -> {
             viewModel.nextWord(true);
-            updateUI();
+            resetCardAndUI();
         });
 
+        // Swipe Left (Repeat)
         binding.btnSwipeLeft.setOnClickListener(v -> {
             viewModel.nextWord(false);
+            resetCardAndUI();
+        });
+
+        // Add word
+        binding.btnAddQuick.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
+
+        // Translate / Language Toggle
+        binding.btnTranslate.setOnClickListener(v -> {
+            String current = viewModel.getCurrentLanguage();
+            String next = current.equals("EN") ? "DE" : "EN";
+            viewModel.setLanguage(next);
+            binding.textLangSource.setText(next);
+            if (isTTSReady) textToSpeech.setLanguage(next.equals("EN") ? Locale.US : Locale.GERMANY);
             updateUI();
         });
 
-        binding.iconSpeech.setOnClickListener(v -> {
-            if (!isTTSReady || textToSpeech == null) {
-                Toast.makeText(this, "Ses servisi hazır değil", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            Word currentWord = viewModel.getCurrentWord();
-            if (currentWord != null) {
-                textToSpeech.speak(currentWord.getOriginalWord(), TextToSpeech.QUEUE_FLUSH, null, "vocab_tts");
+        // Speak word
+        binding.textWord.setOnClickListener(v -> {
+            if (isTTSReady && textToSpeech != null) {
+                Word currentWord = viewModel.getCurrentWord();
+                if (currentWord != null) {
+                    textToSpeech.speak(currentWord.getOriginalWord(), TextToSpeech.QUEUE_FLUSH, null, "vocab_tts");
+                }
             }
         });
-
-        binding.menuIcon.setOnClickListener(v -> showMenu(v));
     }
 
-    private void showMenu(View v) {
-        PopupMenu popup = new PopupMenu(this, v);
-        popup.getMenu().add("İstatistikleri Sıfırla");
-        popup.getMenu().add("Tüm Kelimeleri Sil");
-        popup.getMenu().add("Hakkında");
-
-        popup.setOnMenuItemClickListener(item -> {
-            if (item.getTitle().equals("İstatistikleri Sıfırla")) {
-                new Thread(() -> {
-                    viewModel.resetProgress();
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, "Tüm ilerleme sıfırlandı", Toast.LENGTH_SHORT).show();
-                        updateUI();
-                    });
-                }).start();
-            } else if (item.getTitle().equals("Tüm Kelimeleri Sil")) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Tümünü Sil")
-                        .setMessage("Tüm kelimeleri silmek istediğinize emin misiniz? Bu işlem geri alınamaz.")
-                        .setPositiveButton("Evet", (dialog, which) -> {
-                            new Thread(() -> {
-                                viewModel.clearAll();
-                                runOnUiThread(() -> {
-                                    Toast.makeText(this, "Tüm kelimeler silindi", Toast.LENGTH_SHORT).show();
-                                    updateUI();
-                                });
-                            }).start();
-                        })
-                        .setNegativeButton("Hayır", null)
-                        .show();
-            } else if (item.getTitle().equals("Hakkında")) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Hakkında")
-                        .setMessage("VocabLab v1.0\nKendi kelime kütüphanenizi oluşturun ve öğrenin.")
-                        .setPositiveButton("Tamam", null)
-                        .show();
+    private void setupBottomNav() {
+        binding.bottomNavigation.setSelectedItemId(R.id.nav_study);
+        binding.bottomNavigation.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_list) {
+                startActivity(new Intent(this, WordListActivity.class));
+                overridePendingTransition(0, 0);
+                return true;
+            } else if (id == R.id.nav_profile) {
+                startActivity(new Intent(this, ProfileActivity.class));
+                overridePendingTransition(0, 0);
+                return true;
             }
             return true;
         });
-        popup.show();
     }
 
-    private void switchLanguage(String lang) {
-        viewModel.setLanguage(lang);
+    private void resetCardAndUI() {
+        binding.translationArea.setVisibility(View.INVISIBLE);
+        binding.translationArea.setAlpha(0f);
+        binding.translationArea.setTranslationY(20f);
+        binding.btnShowMeaning.setVisibility(View.VISIBLE);
+        binding.mainCard.setCardElevation(4f);
         updateUI();
-        
-        if (lang.equals("EN")) {
-            binding.btnLangEN.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#3498DB")));
-            binding.btnLangEN.setTextColor(Color.WHITE);
-            binding.btnLangDE.setBackgroundTintList(null);
-            binding.btnLangDE.setTextColor(Color.parseColor("#7F8C8D"));
-            if (isTTSReady && textToSpeech != null) textToSpeech.setLanguage(Locale.US);
-        } else {
-            binding.btnLangDE.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#3498DB")));
-            binding.btnLangDE.setTextColor(Color.WHITE);
-            binding.btnLangEN.setBackgroundTintList(null);
-            binding.btnLangEN.setTextColor(Color.parseColor("#7F8C8D"));
-            if (isTTSReady && textToSpeech != null) textToSpeech.setLanguage(Locale.GERMANY);
-        }
     }
 
     private void updateUI() {
-        try {
-            if (viewModel.hasWords()) {
-                Word currentWord = viewModel.getCurrentWord();
-                if (currentWord != null) {
-                    binding.textWord.setText(currentWord.getOriginalWord());
-                    binding.textMeaning.setText(currentWord.getTranslatedWord());
-                    binding.textSentence.setText(currentWord.getExampleSentence());
-                    
-                    binding.textMeaning.setVisibility(View.INVISIBLE);
-                    binding.btnShowMeaning.setVisibility(View.VISIBLE);
-                }
-            } else {
-                binding.textWord.setText("Kelime Yok");
-                binding.textMeaning.setText("");
-                binding.textSentence.setText("");
-                binding.textMeaning.setVisibility(View.INVISIBLE);
-                binding.btnShowMeaning.setVisibility(View.GONE);
+        if (viewModel.hasWords()) {
+            Word currentWord = viewModel.getCurrentWord();
+            if (currentWord != null) {
+                binding.textWord.setText(currentWord.getOriginalWord());
+                binding.textMeaning.setText(currentWord.getTranslatedWord());
+                binding.textSentence.setText(currentWord.getExampleSentence());
             }
-        } catch (Exception e) {
-            Log.e(TAG, "UI güncelleme hatası", e);
+        } else {
+            binding.textWord.setText("Kelime Yok");
+            binding.textMeaning.setText("");
+            binding.textSentence.setText("");
+            binding.btnShowMeaning.setVisibility(View.GONE);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        binding.bottomNavigation.setSelectedItemId(R.id.nav_study);
         if (viewModel != null) {
             new Thread(() -> {
                 viewModel.loadWords();
@@ -221,7 +176,6 @@ public class MainActivity extends AppCompatActivity {
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
-        binding = null;
         super.onDestroy();
     }
 }
