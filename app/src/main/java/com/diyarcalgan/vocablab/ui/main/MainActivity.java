@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 import com.diyarcalgan.vocablab.databinding.ActivityMainBinding;
@@ -15,50 +15,68 @@ import com.diyarcalgan.vocablab.data.model.Word;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity";
     private ActivityMainBinding binding;
     private MainViewModel viewModel;
     private TextToSpeech textToSpeech;
+    private boolean isTTSReady = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        try {
+            binding = ActivityMainBinding.inflate(getLayoutInflater());
+            setContentView(binding.getRoot());
 
-        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+            viewModel = new ViewModelProvider(this).get(MainViewModel.class);
 
-        initTTS();
-        initObservers();
-        initListeners();
+            initTTS();
+            initObservers();
+            initListeners();
 
-        // Veritabanı işlemleri için ana thread'i yormuyoruz
-        new Thread(() -> {
-            if (viewModel.isDatabaseEmpty()) {
-                viewModel.loadWordsFromAssets(this);
-            } else {
-                viewModel.loadWords();
-            }
-            runOnUiThread(() -> updateUI());
-        }).start();
+            // Veritabanı işlemleri için arka plan thread'i
+            new Thread(() -> {
+                try {
+                    if (viewModel.isDatabaseEmpty()) {
+                        viewModel.loadWordsFromAssets(this);
+                    } else {
+                        viewModel.loadWords();
+                    }
+                    runOnUiThread(this::updateUI);
+                } catch (Exception e) {
+                    Log.e(TAG, "Başlangıç verisi yükleme hatası", e);
+                }
+            }).start();
+        } catch (Exception e) {
+            Log.e(TAG, "onCreate hatası", e);
+            Toast.makeText(this, "Uygulama başlatılamadı: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void initTTS() {
-        textToSpeech = new TextToSpeech(this, status -> {
-            if (status == TextToSpeech.SUCCESS) {
-                textToSpeech.setLanguage(Locale.US);
-            }
-        });
+        try {
+            textToSpeech = new TextToSpeech(this, status -> {
+                if (status == TextToSpeech.SUCCESS) {
+                    isTTSReady = true;
+                    textToSpeech.setLanguage(Locale.US);
+                } else {
+                    Log.e(TAG, "TTS Başlatılamadı");
+                }
+            });
+        } catch (Exception e) {
+            Log.e(TAG, "TTS servisi hatası", e);
+        }
     }
 
     private void initObservers() {
         viewModel.getKnownCount().observe(this, count -> {
-            binding.textKnownCount.setText("Bildiğim: " + count);
+            if (binding != null) binding.textKnownCount.setText("Bildiğim: " + (count != null ? count : 0));
         });
         viewModel.getUnknownCount().observe(this, count -> {
-            binding.textRepeatCount.setText("Tekrar: " + count);
+            if (binding != null) binding.textRepeatCount.setText("Tekrar: " + (count != null ? count : 0));
         });
         viewModel.getTotalCount().observe(this, count -> {
-            binding.textTotalCount.setText("Top: " + count);
+            if (binding != null) binding.textTotalCount.setText("Top: " + (count != null ? count : 0));
         });
     }
 
@@ -83,57 +101,72 @@ public class MainActivity extends AppCompatActivity {
         });
 
         binding.iconSpeech.setOnClickListener(v -> {
+            if (!isTTSReady || textToSpeech == null) {
+                Toast.makeText(this, "Ses servisi hazır değil", Toast.LENGTH_SHORT).show();
+                return;
+            }
             Word currentWord = viewModel.getCurrentWord();
             if (currentWord != null) {
-                textToSpeech.speak(currentWord.getOriginalWord(), TextToSpeech.QUEUE_FLUSH, null, null);
+                textToSpeech.speak(currentWord.getOriginalWord(), TextToSpeech.QUEUE_FLUSH, null, "vocab_tts");
             }
         });
 
-        binding.menuIcon.setOnClickListener(v -> {
-            Toast.makeText(this, "Menü yakında eklenecek!", Toast.LENGTH_SHORT).show();
-        });
-
-        binding.btnInventory.setOnClickListener(v -> {
-            Toast.makeText(this, "Kelime listesi yakında eklenecek!", Toast.LENGTH_SHORT).show();
-        });
+        binding.menuIcon.setOnClickListener(v -> Toast.makeText(this, "Menü yakında eklenecek!", Toast.LENGTH_SHORT).show());
+        binding.btnInventory.setOnClickListener(v -> Toast.makeText(this, "Kelime listesi yakında eklenecek!", Toast.LENGTH_SHORT).show());
     }
 
     private void switchLanguage(String lang) {
         viewModel.setLanguage(lang);
         updateUI();
         
-        // UI colors for language selection
         if (lang.equals("EN")) {
             binding.btnLangEN.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#3498DB")));
             binding.btnLangEN.setTextColor(Color.WHITE);
             binding.btnLangDE.setBackgroundTintList(null);
             binding.btnLangDE.setTextColor(Color.parseColor("#7F8C8D"));
-            textToSpeech.setLanguage(Locale.US);
+            if (isTTSReady && textToSpeech != null) textToSpeech.setLanguage(Locale.US);
         } else {
             binding.btnLangDE.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#3498DB")));
             binding.btnLangDE.setTextColor(Color.WHITE);
             binding.btnLangEN.setBackgroundTintList(null);
             binding.btnLangEN.setTextColor(Color.parseColor("#7F8C8D"));
-            textToSpeech.setLanguage(Locale.GERMANY);
+            if (isTTSReady && textToSpeech != null) textToSpeech.setLanguage(Locale.GERMANY);
         }
     }
 
     private void updateUI() {
-        if (viewModel.hasWords()) {
-            Word currentWord = viewModel.getCurrentWord();
-            if (currentWord != null) {
-                binding.textWord.setText(currentWord.getOriginalWord());
-                binding.textMeaning.setText(currentWord.getTranslatedWord());
-                binding.textSentence.setText(currentWord.getExampleSentence());
-                
-                // Reset visibility
+        try {
+            if (viewModel.hasWords()) {
+                Word currentWord = viewModel.getCurrentWord();
+                if (currentWord != null) {
+                    binding.textWord.setText(currentWord.getOriginalWord());
+                    binding.textMeaning.setText(currentWord.getTranslatedWord());
+                    binding.textSentence.setText(currentWord.getExampleSentence());
+                    
+                    binding.textMeaning.setVisibility(View.INVISIBLE);
+                    binding.btnShowMeaning.setVisibility(View.VISIBLE);
+                }
+            } else {
+                binding.textWord.setText("Kelime Yok");
+                binding.textMeaning.setText("");
+                binding.textSentence.setText("");
                 binding.textMeaning.setVisibility(View.INVISIBLE);
-                binding.btnShowMeaning.setVisibility(View.VISIBLE);
+                binding.btnShowMeaning.setVisibility(View.GONE);
             }
-        } else {
-            binding.textWord.setText("Kelime Yok");
-            binding.textMeaning.setText("");
-            binding.textSentence.setText("");
+        } catch (Exception e) {
+            Log.e(TAG, "UI güncelleme hatası", e);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Sayfa geri gelindiğinde verileri tazele (yeni kelime eklenmiş olabilir)
+        if (viewModel != null) {
+            new Thread(() -> {
+                viewModel.loadWords();
+                runOnUiThread(this::updateUI);
+            }).start();
         }
     }
 
@@ -143,6 +176,7 @@ public class MainActivity extends AppCompatActivity {
             textToSpeech.stop();
             textToSpeech.shutdown();
         }
+        binding = null;
         super.onDestroy();
     }
 }
