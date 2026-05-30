@@ -22,6 +22,8 @@ public class WordListActivity extends AppCompatActivity {
     private WordRepository repository;
     private WordListAdapter adapter;
     private List<Word> cachedWords = new ArrayList<>();
+    private boolean repeatMode = false;
+    private String langFilter = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +33,11 @@ public class WordListActivity extends AppCompatActivity {
             setContentView(binding.getRoot());
 
             repository = new WordRepository(getApplication());
+            Intent intent = getIntent();
+            if (intent != null) {
+                repeatMode = "repeat".equals(intent.getStringExtra("mode"));
+                langFilter = intent.getStringExtra("lang");
+            }
             setupRecyclerView();
             setupBottomNav();
 
@@ -127,21 +134,34 @@ public class WordListActivity extends AppCompatActivity {
     private void applyFilter(String query) {
         if (binding == null || adapter == null) return;
         String q = query != null ? query.trim().toLowerCase() : "";
+        List<Word> base = new ArrayList<>();
+        if (cachedWords != null) {
+            for (Word w : cachedWords) {
+                if (w == null) continue;
+                if (repeatMode && w.isKnown()) continue;
+                if (langFilter != null && !langFilter.isEmpty() && w.getLanguage() != null && !langFilter.equals(w.getLanguage())) {
+                    continue;
+                }
+                base.add(w);
+            }
+        }
+
         if (q.isEmpty()) {
-            adapter.setWords(cachedWords);
-            binding.textWordCount.setText((cachedWords != null ? cachedWords.size() : 0) + " kelime öğreniliyor");
+            adapter.setWords(base);
+            if (repeatMode) {
+                binding.textWordCount.setText(base.size() + " tekrar kelimesi");
+            } else {
+                binding.textWordCount.setText(base.size() + " kelime öğreniliyor");
+            }
             return;
         }
 
         List<Word> filtered = new ArrayList<>();
-        if (cachedWords != null) {
-            for (Word w : cachedWords) {
-                if (w == null) continue;
-                String o = w.getOriginalWord() != null ? w.getOriginalWord().toLowerCase() : "";
-                String t = w.getTranslatedWord() != null ? w.getTranslatedWord().toLowerCase() : "";
-                if (o.contains(q) || t.contains(q)) {
-                    filtered.add(w);
-                }
+        for (Word w : base) {
+            String o = w.getOriginalWord() != null ? w.getOriginalWord().toLowerCase() : "";
+            String t = w.getTranslatedWord() != null ? w.getTranslatedWord().toLowerCase() : "";
+            if (o.contains(q) || t.contains(q)) {
+                filtered.add(w);
             }
         }
         adapter.setWords(filtered);

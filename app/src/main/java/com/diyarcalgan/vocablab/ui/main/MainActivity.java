@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -22,6 +23,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean isTTSReady = false;
     private int startWordId = -1;
     private String startLang = null;
+    private float downX = 0f;
+    private float downY = 0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,19 +86,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void initObservers() {
         if (viewModel == null || binding == null) return;
-        viewModel.getKnownCount().observe(this, count -> {
-            if (binding != null) binding.textKnownCount.setText("Bilinen: " + (count != null ? count : 0));
-        });
         viewModel.getUnknownCount().observe(this, count -> {
             if (binding != null) binding.textRepeatCount.setText("Tekrar: " + (count != null ? count : 0));
-        });
-        viewModel.getTotalCount().observe(this, count -> {
-            if (binding != null) binding.textTotalCount.setText("Toplam: " + (count != null ? count : 0));
         });
     }
 
     private void initListeners() {
         if (binding == null) return;
+
+        binding.textRepeatCount.setOnClickListener(v -> {
+            Intent intent = new Intent(this, WordListActivity.class);
+            intent.putExtra("mode", "repeat");
+            intent.putExtra("lang", viewModel != null ? viewModel.getCurrentLanguage() : null);
+            startActivity(intent);
+        });
 
         binding.btnShowMeaning.setOnClickListener(v -> {
             binding.translationArea.setVisibility(View.VISIBLE);
@@ -105,19 +109,9 @@ public class MainActivity extends AppCompatActivity {
             binding.mainCard.setCardElevation(12f);
         });
 
-        binding.btnSwipeRight.setOnClickListener(v -> {
-            viewModel.nextWord(true);
-            resetCardAndUI();
-        });
-
-        binding.btnSwipeLeft.setOnClickListener(v -> {
-            viewModel.nextWord(false);
-            resetCardAndUI();
-        });
-
         binding.fabAdd.setOnClickListener(v -> startActivity(new Intent(this, AddWordActivity.class)));
 
-        binding.btnTranslate.setOnClickListener(v -> {
+        binding.iconSpeech.setOnClickListener(v -> {
             if (isTTSReady && textToSpeech != null) {
                 Word currentWord = viewModel.getCurrentWord();
                 if (currentWord != null) {
@@ -136,6 +130,50 @@ public class MainActivity extends AppCompatActivity {
             viewModel.setLanguage("DE");
             applyLanguageUI();
             resetCardAndUI();
+        });
+
+        binding.mainCard.setOnTouchListener((v, event) -> {
+            if (viewModel == null || !viewModel.hasWords()) return false;
+
+            switch (event.getActionMasked()) {
+                case MotionEvent.ACTION_DOWN:
+                    downX = event.getRawX();
+                    downY = event.getRawY();
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    float dx = event.getRawX() - downX;
+                    float dy = event.getRawY() - downY;
+                    if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 30f) {
+                        return false;
+                    }
+                    v.setTranslationX(dx);
+                    v.setRotation(dx / 25f);
+                    return true;
+                case MotionEvent.ACTION_UP:
+                case MotionEvent.ACTION_CANCEL:
+                    float deltaX = event.getRawX() - downX;
+                    float absDx = Math.abs(deltaX);
+                    float threshold = v.getWidth() * 0.22f;
+                    if (absDx > threshold) {
+                        boolean learned = deltaX > 0;
+                        float targetX = learned ? v.getWidth() * 1.2f : -v.getWidth() * 1.2f;
+                        v.animate()
+                                .translationX(targetX)
+                                .rotation(learned ? 18f : -18f)
+                                .setDuration(180)
+                                .withEndAction(() -> {
+                                    viewModel.nextWord(learned);
+                                    v.setTranslationX(0f);
+                                    v.setRotation(0f);
+                                    resetCardAndUI();
+                                })
+                                .start();
+                        return true;
+                    }
+                    v.animate().translationX(0f).rotation(0f).setDuration(160).start();
+                    return true;
+            }
+            return false;
         });
     }
 
